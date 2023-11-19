@@ -320,7 +320,41 @@ class ConfigClient(Model):
             progress_callback=progress_callback,
             timeout=timeout or 2 * send_interval * len(nodes),
         )
+    async def set_relay(
+        self,
+        destination: int,
+        net_index: int,
+        relay: bool,
+        retransmit_count: int = 0,
+        retransmit_interval: int = 10,
+    ) -> None:
+        status_opcode = ConfigOpcode.CONFIG_RELAY_STATUS
 
+        status = self.expect_dev(
+            destination,
+            net_index=net_index,
+            opcode=status_opcode,
+            params=dict(
+                relay=relay,
+                retransmit=dict(count=retransmit_count, interval=retransmit_interval),
+            ),
+        )
+
+        request = partial(
+            self.send_dev,
+            destination,
+            net_index=net_index,
+            opcode=ConfigOpcode.CONFIG_RELAY_SET,
+            params=dict(
+                relay=relay,
+                retransmit=dict(count=retransmit_count, interval=retransmit_interval),
+            ),
+        )
+
+        status = await self.query(request, status)
+
+        return None
+    
     async def get_key_refresh_phase(
         self,
         nodes: Sequence[int],
@@ -448,7 +482,7 @@ class ConfigClient(Model):
             ),
         )
 
-        status = await self.query(request, status)
+        status = await self.query(request, status, send_interval=5.0, timeout=60.0)
 
         if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add app key", status)
@@ -573,7 +607,7 @@ class ConfigClient(Model):
             ),
         )
 
-        status = await self.query(request, status)
+        status = await self.query(request, status, timeout=30)
 
         if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot bind app key", status)
@@ -699,7 +733,7 @@ class ConfigClient(Model):
             ),
         )
 
-        status = await self.query(request, status)
+        status = await self.query(request, status, send_interval=1.0, timeout=10)
 
         if status[params_name]["status"] != StatusCode.SUCCESS:
             raise ModelOperationError("Cannot add subscription", status)
@@ -1352,7 +1386,7 @@ class GenericOnOffClient(Model):
             return await ret
 
         status = await self.query(
-            request, status, send_interval=send_interval, timeout=1
+            request, status, send_interval=send_interval, timeout=None
         )
 
         return status[status_opcode.name.lower()]["present_onoff"]

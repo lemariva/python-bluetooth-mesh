@@ -366,8 +366,8 @@ class Model:
         request: Callable[[], Awaitable[None]],
         status: asyncio.Future,
         *,
-        send_interval: float = 0.2,
-        timeout: float = 2.0,
+        send_interval: float = 1.0,
+        timeout: float = 5.0,
     ) -> Any:
         """
         Query
