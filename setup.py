@@ -27,14 +27,14 @@ with open("README.rst", "r") as f:
 # fmt: off
 setup(
     name='bluetooth-mesh',
-    version='0.8.6',
+    version='0.8.7',
     author_email='michal.lowas-rzechonek@silvair.com',
     description=(
         'Bluetooth mesh for Python'
     ),
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    url='http://github.com/silvairgit/python-bluetooth-mesh',
+    url='http://github.com/lemariva/python-bluetooth-mesh',
     packages=find_packages(exclude=('test*', )),
     python_requires='>=3.6.0,<3.11.0',
     setup_requires=[
